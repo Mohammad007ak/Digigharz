@@ -52,6 +52,9 @@ export function createCircleService({
   // Debit a member's Digipay wallet for a share they didn't pay by the end of
   // the payment days. Off for now: unpaid shares go straight to the guarantee.
   walletDebit = false,
+  // Gate joining on Digipay's credit score and monthly limit. Off for now:
+  // anyone signed in may join any plan (SCORING_CHECK=true turns it back on).
+  scoringCheck = false,
 }) {
   const getCircle = (id, d = db) => d.get("SELECT * FROM circles WHERE id = ?", id);
   const membersOf = (circleId, d = db) =>
@@ -209,6 +212,10 @@ export function createCircleService({
   }
 
   async function eligibility(phone) {
+    if (!scoringCheck) {
+      const committed = await committedMonthly(phone);
+      return { approved: true, monthlyLimit: null, committed, available: Number.MAX_SAFE_INTEGER };
+    }
     const score = await digipay.scoring.check(phone);
     const committed = await committedMonthly(phone);
     return {

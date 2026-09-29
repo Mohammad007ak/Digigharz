@@ -14,7 +14,7 @@ async function join(service, p, planId = "p12-5") {
 
 test("the admin overview adds up money in, money out, debt and refunds", async () => {
   const db = await testDatabase();
-  const service = createCircleService({ db, digipay: createDigipaySimulator(), walletDebit: true });
+  const service = createCircleService({ db, digipay: createDigipaySimulator(), walletDebit: true, scoringCheck: true });
   const reports = createOpsReports({ db });
 
   // Someone joins and leaves (refund), then 11 members fill a 5M circle.

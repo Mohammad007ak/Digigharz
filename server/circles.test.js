@@ -10,7 +10,7 @@ import { toJalali } from "../src/lib/jalali.js";
 // Phones ending 4–9 get a 25M monthly limit from the simulator's scoring.
 const phone = (i) => `0912000${String(i).padStart(3, "0")}9`;
 
-async function setup({ clock, walletDebit = true } = {}) {
+async function setup({ clock, walletDebit = true, scoringCheck = true } = {}) {
   const db = await testDatabase();
   const digipay = createDigipaySimulator();
   const payouts = [];
@@ -34,6 +34,7 @@ async function setup({ clock, walletDebit = true } = {}) {
       now,
       formTimeoutMs: 60 * 60 * 1000,
       walletDebit,
+      scoringCheck,
     }),
     payouts,
     refunds,
@@ -51,6 +52,15 @@ async function fillPlan(service, planId, members) {
   for (let i = 1; i <= members; i++) ({ circleId } = await join(service, { phone: phone(i), planId }));
   return circleId;
 }
+
+test("with the scoring check off, anyone can join any plan", async () => {
+  const { service } = await setup({ scoringCheck: false });
+  // Phones ending 0 are rejected and 1–3 limited to 5M when the check is on.
+  await join(service, { phone: "09120000000", planId: "p12-10" });
+  await join(service, { phone: "09120000001", planId: "p12-10" });
+  await join(service, { phone: "09120000001", planId: "p6-10" });
+  assert.equal((await service.eligibility("09120000000")).approved, true);
+});
 
 test("scoring gates who can join and how much they can commit", async () => {
   const { service } = await setup();
