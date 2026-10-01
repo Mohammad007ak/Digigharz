@@ -5,3 +5,4 @@ data
 .git
 .DS_Store
 *.log
+backend/target

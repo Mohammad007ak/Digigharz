@@ -11,22 +11,13 @@ const SITEMAP = [
   { path: "/terms/", priority: "0.3", changefreq: "yearly" },
 ];
 
-// In development the API runs inside Vite's own server, so one
-// `npm run dev` starts everything on a single port.
-function apiServer() {
+// In development the API is the Java backend (backend/, `npm run backend`),
+// on API_URL (default http://localhost:3000); Vite forwards /api to it, so
+// the app still runs on a single address.
+function devPages() {
   return {
-    name: "sandogh-api",
-    async configureServer(server) {
-      // Server settings (SMS keys, DEMO_MODE, ...) come from .env, as with `npm start`.
-      try {
-        process.loadEnvFile(".env");
-      } catch {
-        // No .env: dev defaults (codes shown on screen).
-      }
-      const { createAppFromEnv } = await server.ssrLoadModule("/server/config.js");
-      const app = await createAppFromEnv();
-      setInterval(() => app.locals.runScheduledJobs().catch((e) => console.error(e)), 60 * 1000);
-      server.middlewares.use((req, res, next) => (req.url.startsWith("/api/") ? app(req, res, next) : next()));
+    name: "sandogh-pages",
+    configureServer(server) {
       // Same URLs as production: the app at the root, the landing page at /welcome/.
       server.middlewares.use((req, res, next) => {
         const [path, query] = req.url.split("?");
@@ -72,7 +63,8 @@ export default defineConfig(({ command, mode }) => {
   }
 
   return {
-    plugins: [react(), apiServer(), seo(siteUrl || "http://localhost:3000")],
+    plugins: [react(), devPages(), seo(siteUrl || "http://localhost:3000")],
+    server: { proxy: { "/api": env.API_URL || "http://localhost:3000" } },
     build: {
       rollupOptions: {
         input: {
