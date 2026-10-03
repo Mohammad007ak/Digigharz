@@ -7,8 +7,8 @@
     "dev": "vite --host",
     "build": "vite build",
     "test": "node --test src/lib/*.test.js",
-    "backend": "cd backend && mvn -q spring-boot:run",
-    "backend:test": "cd backend && mvn -q test",
+    "backend": "node scripts/backend.mjs",
+    "backend:test": "node scripts/backend.mjs test",
     "compare-backends": "node scripts/compare-backends.mjs"
   },
   "dependencies": {

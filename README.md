@@ -74,7 +74,7 @@
 
 نیاز دارید به:
 - [Node.js](https://nodejs.org) نسخه‌ی ۲۲ یا بالاتر، برای فرانت‌اند
-- جاوا ۲۱ (JDK) و [Maven](https://maven.apache.org)، برای بک‌اند
+- جاوا ۲۱ (JDK)، برای بک‌اند. Maven لازم نیست: `npm run backend` نسخه‌ی مناسبش را خودش دانلود می‌کند (Maven Wrapper).
 
 دیتابیس SQLite داخل خود بک‌اند است و نصب جداگانه نمی‌خواهد.
 
@@ -104,7 +104,7 @@ npm run dev         # ترمینال دوم: سایت و اپ روی پورت 51
 ```bash
 cp .env.example .env   # کلید پیامک و بقیه‌ی تنظیمات را وارد کنید
 npm install && npm run build
-(cd backend && mvn -q package -DskipTests)
+(cd backend && ./mvnw -q package -DskipTests)
 APP_ENV=production DIST_DIR=dist java -jar backend/target/digigharz.jar
 ```
 
