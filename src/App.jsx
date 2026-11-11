@@ -32,6 +32,7 @@ import { overdueDues } from "./lib/fund.js";
 import { useFundSync } from "./lib/useFundSync.js";
 import { currentMonthKey, toPersianDigits } from "./lib/jalali.js";
 import { useRoute } from "./lib/router.js";
+import { trackScreen } from "./lib/analytics.js";
 import AppBar from "./ui/AppBar.jsx";
 
 const TABS = [
@@ -243,6 +244,9 @@ function ManageFund({ fundId, tab: routeTab, go, back, phone, onLogout }) {
 export default function App() {
   const [phone, setPhone] = useState(undefined);
   const [route, go, back] = useRoute();
+  useEffect(() => {
+    if (route.page !== "ops") trackScreen(route.page === "manage" ? `manage/${route.tab ?? "home"}` : route.page);
+  }, [route.page, route.tab]);
   // Every new account gets the tour right after signing in (the server
   // remembers who has seen it); it can be opened again any time.
   const [touring, setTouring] = useState(false);

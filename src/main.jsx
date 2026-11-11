@@ -4,9 +4,15 @@ import "@fontsource-variable/vazirmatn";
 import "@fontsource-variable/estedad";
 import "./styles.css";
 import App from "./App.jsx";
+import ErrorBoundary from "./ui/ErrorBoundary.jsx";
+import { startAnalytics } from "./lib/analytics.js";
+
+startAnalytics();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );

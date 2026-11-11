@@ -183,3 +183,98 @@ CREATE TABLE IF NOT EXISTS otp_codes (
     expires_at BIGINT NOT NULL
   );
   CREATE INDEX IF NOT EXISTS ops_events_circle ON ops_events (circle_id, at);
+
+  -- ---------- product analytics (admin panel) ----------
+  -- "day" is the Tehran calendar day (YYYY-MM-DD), stored so reports can
+  -- GROUP BY it on either database.
+
+  -- One row per browser/app install: the first open is the "install".
+  CREATE TABLE IF NOT EXISTS devices (
+    id TEXT PRIMARY KEY,
+    phone TEXT,
+    platform TEXT NOT NULL,
+    os_version TEXT,
+    app_version TEXT,
+    channel TEXT NOT NULL,
+    campaign TEXT,
+    first_at BIGINT NOT NULL,
+    first_day TEXT NOT NULL,
+    last_at BIGINT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS devices_first_day ON devices (first_day);
+
+  -- One row per signed-in account; attribution is first touch.
+  CREATE TABLE IF NOT EXISTS users (
+    phone TEXT PRIMARY KEY,
+    first_at BIGINT NOT NULL,
+    first_day TEXT NOT NULL,
+    last_at BIGINT NOT NULL,
+    last_day TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    channel TEXT NOT NULL,
+    campaign TEXT,
+    app_version TEXT,
+    device_id TEXT,
+    logins BIGINT NOT NULL DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS users_first_day ON users (first_day);
+  CREATE INDEX IF NOT EXISTS users_last_at ON users (last_at);
+
+  -- Product events: app opens, logins, feature use, purchases.
+  CREATE TABLE IF NOT EXISTS analytics_events (
+    id TEXT PRIMARY KEY,
+    at BIGINT NOT NULL,
+    day TEXT NOT NULL,
+    name TEXT NOT NULL,
+    device_id TEXT,
+    phone TEXT,
+    platform TEXT,
+    channel TEXT,
+    props TEXT
+  );
+  CREATE INDEX IF NOT EXISTS analytics_events_day ON analytics_events (day, name);
+  CREATE INDEX IF NOT EXISTS analytics_events_phone ON analytics_events (phone, at);
+
+  -- Errors from the app and the server, grouped by fingerprint.
+  CREATE TABLE IF NOT EXISTS error_groups (
+    fingerprint TEXT PRIMARY KEY,
+    source TEXT NOT NULL,
+    message TEXT NOT NULL,
+    stack TEXT,
+    url TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    count BIGINT NOT NULL DEFAULT 0,
+    first_at BIGINT NOT NULL,
+    last_at BIGINT NOT NULL,
+    note TEXT
+  );
+  CREATE INDEX IF NOT EXISTS error_groups_last ON error_groups (last_at);
+  CREATE TABLE IF NOT EXISTS error_logs (
+    id TEXT PRIMARY KEY,
+    fingerprint TEXT NOT NULL,
+    at BIGINT NOT NULL,
+    day TEXT NOT NULL,
+    source TEXT NOT NULL,
+    level TEXT NOT NULL,
+    message TEXT NOT NULL,
+    stack TEXT,
+    url TEXT,
+    device_id TEXT,
+    phone TEXT,
+    platform TEXT,
+    app_version TEXT,
+    context TEXT
+  );
+  CREATE INDEX IF NOT EXISTS error_logs_fp ON error_logs (fingerprint, at);
+  CREATE INDEX IF NOT EXISTS error_logs_day ON error_logs (day);
+
+  -- The AI's daily read of yesterday's numbers.
+  CREATE TABLE IF NOT EXISTS ai_insights (
+    day TEXT PRIMARY KEY,
+    created_at BIGINT NOT NULL,
+    model TEXT,
+    status TEXT NOT NULL,
+    content TEXT,
+    metrics TEXT,
+    error TEXT
+  );

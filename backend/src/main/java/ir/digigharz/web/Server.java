@@ -1,6 +1,8 @@
 package ir.digigharz.web;
 
 import ir.digigharz.HttpError;
+import ir.digigharz.analytics.Analytics;
+import ir.digigharz.analytics.Insights;
 import ir.digigharz.circles.CircleService;
 import ir.digigharz.circles.OpsReports;
 import ir.digigharz.db.Db;
@@ -24,6 +26,8 @@ public class Server {
   public final CircleService circles;
   public final OpsReports reports;
   public final AdminAuth admin;
+  public final Analytics analytics;
+  public final Insights insights;
 
   public Server(AppOptions o) {
     // The simulator signs anyone in as any phone ("sim-<phone>") and moves no
@@ -42,6 +46,13 @@ public class Server {
         o.db, o.digipay, o.now, o.formTimeoutMs, 0.05, 30L * 24 * 60 * MINUTE, o.walletDebit, o.scoringCheck));
     this.reports = new OpsReports(o.db, o.now);
     this.admin = new AdminAuth(o.db, o.adminUsername, o.adminPassword, o.production, o.now);
+    this.analytics = new Analytics(o.db, o.now);
+    this.insights = new Insights(o.db, analytics, reports, o.now, o.insightsApiKey, o.insightsModel, o.insightsHour, o.insightsFetch);
+    try {
+      analytics.backfillUsers();
+    } catch (RuntimeException e) {
+      System.err.println("analytics backfill: " + e.getMessage());
+    }
   }
 
   long now() {
@@ -61,7 +72,8 @@ public class Server {
     return phone;
   }
 
-  public void startSession(HttpServletResponse res, String phone) {
+  public void startSession(HttpServletRequest req, HttpServletResponse res, String phone) {
+    req.setAttribute(AnalyticsFilter.SIGNED_IN, phone);
     byte[] raw = new byte[32];
     RANDOM.nextBytes(raw);
     String token = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);

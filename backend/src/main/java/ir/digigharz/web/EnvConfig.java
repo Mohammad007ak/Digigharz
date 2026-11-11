@@ -78,6 +78,10 @@ public final class EnvConfig {
     o.adminPassword = emptyToNull(env.get("ADMIN_PASSWORD"));
     o.walletDebit = "true".equals(env.get("WALLET_DEBIT"));
     o.scoringCheck = "true".equals(env.get("SCORING_CHECK"));
+    o.insightsApiKey = emptyToNull(env.get("ANTHROPIC_API_KEY"));
+    o.insightsModel = emptyToNull(env.get("INSIGHTS_MODEL"));
+    String insightsHour = emptyToNull(env.get("INSIGHTS_HOUR"));
+    o.insightsHour = insightsHour == null ? null : (int) Double.parseDouble(insightsHour);
     Map<String, Object> storage = new LinkedHashMap<>();
     if (postgres) {
       storage.put("database", "postgres");

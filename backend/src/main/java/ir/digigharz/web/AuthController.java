@@ -99,7 +99,7 @@ public class AuthController {
     int changes = s.db.run("UPDATE otp_codes SET code_hash = '', expires_at = 0 WHERE phone = ? AND code_hash = ?",
         phone, row.str("code_hash"));
     if (changes == 0) throw new HttpError(400, "کد منقضی شده است. دوباره درخواست کنید.");
-    s.startSession(res, phone);
+    s.startSession(req, res, phone);
     return obj("phone", phone);
   }
 
@@ -110,7 +110,7 @@ public class AuthController {
     String identity = s.o.digipay.verifyLaunchToken(Body.of(req).str("token"));
     String phone = identity == null ? null : Phone.normalize(identity);
     if (phone == null) throw new HttpError(401, "ورود از طریق دیجی‌پی تأیید نشد.");
-    s.startSession(res, phone);
+    s.startSession(req, res, phone);
     return obj("phone", phone);
   }
 

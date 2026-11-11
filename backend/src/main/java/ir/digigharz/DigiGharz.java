@@ -21,6 +21,17 @@ public class DigiGharz {
   FilterRegistrationBean<ApiFilter> apiFilter() {
     FilterRegistrationBean<ApiFilter> bean = new FilterRegistrationBean<>(new ApiFilter());
     bean.addUrlPatterns("/api/*", "/api");
+    bean.setOrder(1);
+    return bean;
+  }
+
+  /** After the body is parsed: successful API calls become analytics events. */
+  @Bean
+  FilterRegistrationBean<ir.digigharz.web.AnalyticsFilter> analyticsFilter(Server server) {
+    FilterRegistrationBean<ir.digigharz.web.AnalyticsFilter> bean =
+        new FilterRegistrationBean<>(new ir.digigharz.web.AnalyticsFilter(server));
+    bean.addUrlPatterns("/api/*");
+    bean.setOrder(2);
     return bean;
   }
 
@@ -49,6 +60,11 @@ public class DigiGharz {
       timer.scheduleWithFixedDelay(() -> {
         try {
           server.circles.runDueDraws();
+        } catch (RuntimeException e) {
+          e.printStackTrace();
+        }
+        try {
+          server.insights.runDaily();
         } catch (RuntimeException e) {
           e.printStackTrace();
         }

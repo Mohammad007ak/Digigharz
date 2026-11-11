@@ -46,6 +46,12 @@ public class AppOptions {
   /** When the image was built (the BUILT_AT file), shown by /api/health. */
   public String builtAt;
   public int port;
+  /** The daily AI briefing (ANTHROPIC_API_KEY); off without a key. */
+  public String insightsApiKey;
+  public String insightsModel;
+  public Integer insightsHour;
+  /** The HTTP call to the AI; null uses the real one (tests swap it). */
+  public ir.digigharz.analytics.Insights.Fetch insightsFetch;
   /** Run due draws every minute, so they happen even when nobody opens the app. */
   public boolean scheduler;
 }
